@@ -102,6 +102,10 @@ class ObstacleDetector:
         for bbox in bboxes:
             x, y, w, h = bbox
             updated_bbox = (x, y + background_row, w, h)
+            # resize bbox back to original image coordinates
+            scale_x = img.shape[1] / depth.shape[1]
+            scale_y = img.shape[0] / depth.shape[0]
+            updated_bbox = (int(updated_bbox[0] * scale_x), int(updated_bbox[1] * scale_y), int(updated_bbox[2] * scale_x), int(updated_bbox[3] * scale_y))
             updated_bboxes.append(updated_bbox)
 
         
