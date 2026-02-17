@@ -36,18 +36,16 @@ class ObstacleDetector:
         if self.write_img:
             os.makedirs("./debug", exist_ok=True)
 
-    def detect_obstacles(self, img_path):
+    def detect_obstacles(self, img):
         """
         Docstring for detect_obstacles
         
-        :param img_path: Description
+        :param img: np array of image
         :return: list[bbox], bbox: (x, y, w, h)
         """
 
         print("[INFO] Processing image for obstacle detection... debug mode:", self.debug)
 
-        # preprocess image
-        img = cv2.imread(img_path)
         img = img = cv2.resize(img, (480, 360), interpolation=cv2.INTER_AREA)
         depth = self.model.infer_image(img)
         og_depth = depth.copy() # for debugging visualization
@@ -123,6 +121,7 @@ class ObstacleDetector:
             self.visualize_depth(normalized_depth, label="cropped & row-normalized depth map")
             self.visualize_depth(mask, label="binary mask from thresholding")
             self.visualize_bboxes(img, updated_bboxes)
+        if not self.write_img:
             cv2.waitKey(0)
             cv2.destroyAllWindows()
         
@@ -282,12 +281,13 @@ class ObstacleDetector:
             cv2.imshow("image", img)
     
     def visualize_bboxes(self, img, bboxes):
+        vis = img.copy()
         for (x, y, w, h) in bboxes:
-            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            cv2.rectangle(vis, (x, y), (x+w, y+h), (0, 255, 0), 2)
         if self.write_img:
-            cv2.imwrite("./debug/debug_bboxes.png", img)
+            cv2.imwrite("./debug/debug_bboxes.png", vis)
         else:
-            cv2.imshow("bboxes", img)
+            cv2.imshow("bboxes", vis)
     
     def visualize_depth(self, depth, label="depth"):
         colored_depth = self.depth_to_colormap(depth)
@@ -310,7 +310,8 @@ class ObstacleDetector:
 if __name__ == "__main__":
     detector = ObstacleDetector(debug=True, write_img=True)
     test_img_path = "/Users/allynbao/Documents/ml/ORCA_computer_vision/ORCA_Computer_Vision/datasets/front-cam/run_24_front/img_027.jpg"
+    img = cv2.imread(test_img_path)
     print("Process image")
-    bboxes = detector.detect_obstacles(test_img_path)
+    bboxes = detector.detect_obstacles(img)
     print(f"Detected bboxes: {bboxes}")
     
